@@ -1,151 +1,114 @@
 ---
 layout: docwithnav
-title: Request Connector Configuration
-description: HTTP protocol support for ThingsBoard IoT Gateway
+title: REST Connector Configuration
+description: REST API enpoints support for ThingsBoard IoT Gateway
 
 ---
 
 * TOC
 {:toc}
 
-This guide will help you to get familiar with Request Connector configuration for ThingsBoard IoT Gateway.  
+This guide will help you to get familiar with REST Connector configuration for ThingsBoard IoT Gateway.  
 Use [general configuration guide](/docs/iot-gateway/configuration/) to enable this Connector.  
-The purpose of this Connector is to connect to external HTTP(S) API endpoints and get data from them.  
+The purpose of this Connector is to create API endpoints and get data from received requests.  
 Connector is also able to push data to external HTTP(S) API based on the updates/commands from ThingsBoard.    
 
 This connector is useful when you have some HTTP(S) API endpoints in your device or some data in external resource and you would like to push this data to the ThingsBoard.    
 
 We will describe connector configuration file below.  
 
-## Connector configuration: request.json
+## Connector configuration: rest.json
 
-Connector configuration is a JSON file that contains information about how to connect to external API endpoints, what urls to use when reading data and how to process the data.  
+Connector configuration is a JSON file that contains information about how to create API endpoints and how to process the data.  
 Let's review the format of the configuration file using example below.    
 
 <br>
 <details>
 
 <summary>
-<b>Example of Request Connector config file. Press to expand.</b>
+<b>Example of REST Connector config file. Press to expand.</b>
 </summary>
 
-Example listed below will connect to server on a localhost with 5000 port.  
+Example listed below will create a server on a localhost using 5000 port.  
 Connector will use basic HTTP authorization using username and password.  
-Then, connector will read data from a list of endpoints using urls from mapping section. See more info in a description below.  
+Then, connector will create endpoints from a list of endpoints using endpoints from mapping section. See more info in a description below.  
 
 {% highlight json %}
 {
-  "host": "http://127.0.0.1:5000",
-  "SSLVerify": true,
-  "security": {
-    "type": "basic",
-    "username": "user",
-    "password": "password"
-  },
-  "mapping": [
+  "host": "127.0.0.1",
+  "port": "5000",
+  "mapping":[
     {
-      "url": "getdata",
-      "httpMethod": "GET",
-      "httpHeaders": {
-        "ACCEPT": "application/json"
+      "endpoint": "/test_device",
+      "HTTPMethod": [
+        "POST"
+      ],
+      "security":
+      {
+        "type": "basic",
+        "username": "user",
+        "password": "passwd"
       },
-      "allowRedirects": true,
-      "timeout": 0.5,
-      "scanPeriod": 5,
       "converter": {
         "type": "json",
-        "deviceNameJsonExpression": "SD8500",
-        "deviceTypeJsonExpression": "SD",
+        "deviceNameExpression": "Device ${name}",
+        "deviceTypeExpression": "default",
         "attributes": [
           {
-            "key": "serialNumber",
             "type": "string",
-            "value": "${serial}"
+            "key": "model",
+            "value": "${sensorModel}"
           }
         ],
-        "telemetry": [
+        "timeseries": [
           {
-            "key": "Maintainer",
-            "type": "string",
-            "value": "${Developer}"
-          }
-        ]
-      }
-    },
-    {
-      "url": "get_info",
-      "httpMethod": "GET",
-      "httpHeaders": {
-        "ACCEPT": "application/json"
-      },
-      "allowRedirects": true,
-      "timeout": 0.5,
-      "scanPeriod": 100,
-      "converter": {
-        "type": "custom",
-        "deviceNameJsonExpression": "SD8500",
-        "deviceTypeJsonExpression": "SD",
-        "extension": "CustomRequestUplinkConverter",
-        "extension-config": [
-          {
-            "key": "Totaliser",
-            "type": "float",
-            "fromByte": 0,
-            "toByte": 4,
-            "byteorder": "big",
-            "signed": true,
-            "multiplier": 1
+            "type": "double",
+            "key": "temperature",
+            "value": "${temp}"
           },
           {
-            "key": "Flow",
-            "type": "int",
-            "fromByte": 4,
-            "toByte": 6,
-            "byteorder": "big",
-            "signed": true,
-            "multiplier": 0.01
+            "type": "double",
+            "key": "humidity",
+            "value": "${hum}",
+            "converter": "CustomConverter"
           }
         ]
       }
-    }
-  ],
-  "attributeUpdates": [
-      {
-        "httpMethod": "POST",
-        "httpHeaders": {
-          "CONTENT-TYPE": "application/json"
-        },
-        "timeout": 0.5,
-        "tries": 3,
-        "allowRedirects": true,
-        "deviceNameFilter": "SD.*",
-        "attributeFilter": "send_data",
-        "requestUrlExpression": "sensor/${deviceName}/${attributeKey}",
-        "valueExpression": "{\"${attributeKey}\":\"${attributeValue}\"}"
-      }
-  ],
-  "serverSideRpc": [
-    {
-      "deviceNameFilter": ".*",
-      "methodFilter": "echo",
-      "requestUrlExpression": "sensor/${deviceName}/request/${methodName}/${requestId}",
-      "responseTimeout": 1,
-      "httpMethod": "GET",
-      "valueExpression": "${params}",
-      "timeout": 0.5,
-      "tries": 3,
-      "httpHeaders": {
-        "Content-Type": "application/json"
-      }
     },
     {
-      "deviceNameFilter": ".*",
-      "methodFilter": "no-reply",
-      "requestUrlExpression": "sensor/${deviceName}/request/${methodName}/${requestId}",
-      "httpMethod": "POST",
-      "valueExpression": "${params}",
-      "httpHeaders": {
-        "Content-Type": "application/json"
+      "endpoint": "/test",
+      "HTTPMethod": [
+        "GET",
+        "POST"
+      ],
+      "security":
+      {
+        "type": "anonymous"
+      },
+      "converter": {
+        "type": "custom",
+        "class": "CustomConverter",
+        "deviceNameExpression": "Device 2",
+        "deviceTypeExpression": "default",
+        "attributes": [
+          {
+            "type": "string",
+            "key": "model",
+            "value": "Model2"
+          }
+        ],
+        "timeseries": [
+          {
+            "type": "double",
+            "key": "temperature",
+            "value": "${temp}"
+          },
+          {
+            "type": "double",
+            "key": "humidity",
+            "value": "${hum}"
+          }
+        ]
       }
     }
   ]
@@ -164,36 +127,30 @@ Then, connector will read data from a list of endpoints using urls from mapping 
 | SSLVerify     | **true**                          | Verify or no SSL certificate on the server if available.  |
 |---
 
-
-### Security section
-
-This section provides configuration for client authorization at the external server.
- 
-{% capture requestconnectorsecuritytogglespec %}
-Basic<small>Recommended</small>%,%username%,%templates/iot-gateway/request-connector-basic-security-config.md%br%
-Anonymous<small>No security</small>%,%anonymous%,%templates/iot-gateway/request-connector-anonymous-security-config.md{% endcapture %}
-
-{% include content-toggle.html content-toggle-id="requestConnectorCredentialsConfig" toggle-spec=requestconnectorsecuritytogglespec %}
-
-
 ### Mapping section
 
-This configuration section contains array of objects with endpoints that the gateway will try to read after connecting to the server.  
+This configuration section contains array of objects with endpoints that the gateway will create.  
 Also this section contains settings about processing incoming messages (converter).  
-After request, each response from that url is analyzed to extract device name, type and data (attributes and/or timeseries values).  
+After request receiving, the message from the request is analyzed to extract device name, type and data (attributes and/or timeseries values).  
 By default, the gateway uses Json converter, but it is possible to provide custom converter. See [example](https://github.com/thingsboard/thingsboard-gateway/blob/master/thingsboard_gateway/extensions/request/custom_request_uplink_converter.py) in the source code.  
 
 **Note**: You can specify multiple mapping objects inside the array.
 
-| **Parameter**     | **Default value**                     | **Description**                                                   |
+| **Parameter**     | **Default value**                     | **Description**                                               |
 |:-|:-|-
-| url               | **getdata**                           | Url address for sending request.                                  |
-| httpMethod        | **GET**                               | HTTP method for request (**GET**, **POST** etc.).                 |
-| httpHeaders       | **{ "ACCEPT": "application/json" }**  | Object contains additional HTTP headers for request.              |
-| allowRedirects    | **true**                              | Allow request redirection.                                        |
-| timeout           | **0.5**                               | Timeout for request.                                              |
-| scanPeriod        | **5**                                 | Rescan rate.                                                      |
+| endpoint          | **/test_device**                      | Url address of the endpoint.                                  |
+| HTTPMethod        | **GET**                               | HTTP method allowed for endpoint (**GET**, **POST** etc.).    |
 |---
+
+#### Security section
+
+This section provides configuration for client authorization at the gateway for every endpoint.
+ 
+{% capture restconnectorsecuritytogglespec %}
+Basic<small>Recommended</small>%,%username%,%templates/iot-gateway/rest-connector-basic-security-config.md%br%
+Anonymous<small>No security</small>%,%anonymous%,%templates/iot-gateway/rest-connector-anonymous-security-config.md{% endcapture %}
+
+{% include content-toggle.html content-toggle-id="requestConnectorCredentialsConfig" toggle-spec=restconnectorsecuritytogglespec %}
 
 
 #### Converter subsection
@@ -202,13 +159,13 @@ This subsection contains configuration for processing incoming messages.
 
 Types of request converters:  
 1. json -- Default converter  
-2. custom -- Custom converter (You can write it by yourself, and it will use to convert incoming data from the response.)  
+2. custom -- Custom converter (You can write it by yourself, and it will use to convert incoming data from the broker.)  
 
-{% capture requestconvertertypespec %}
-json<small>Recommended if json will be received in response</small>%,%json%,%templates/iot-gateway/request-converter-json-config.md%br%
-custom<small>Recommended if bytes or anything else will be received in response</small>%,%custom%,%templates/iot-gateway/request-converter-custom-config.md{% endcapture %}
+{% capture restconvertertypespec %}
+json<small>Recommended if json will be received in the request</small>%,%json%,%templates/iot-gateway/rest-converter-json-config.md%br%
+custom<small>Recommended if bytes or anything else will be received in the request</small>%,%custom%,%templates/iot-gateway/rest-converter-custom-config.md{% endcapture %}
 
-{% include content-toggle.html content-toggle-id="RequestConverterTypeConfig" toggle-spec=requestconvertertypespec %}
+{% include content-toggle.html content-toggle-id="RequestConverterTypeConfig" toggle-spec=restconvertertypespec %}
 
 
 ### Attribute update section
@@ -269,7 +226,7 @@ Configuration, provided in this section uses for sending RPC requests from Thing
 | requestUrlExpression          | **sensor/${deviceName}/request/${methodName}/${requestId}**       | JSON-path expression, uses to create url address to send RPC request.                 |
 | responseTimeout               | **0.5**                                                           | Timeout for request.                                                                  |
 | httpMethod                    | **GET**                                                           | HTTP method for request (**GET**, **POST** etc.).                                     |
-| valueExpression               | **${params}**                                                     | JSON-path expression, uses for creating data for sending to the external endpoint.    |
+| valueExpression               | **${params}**                                                     | JSON-path expression, uses for creating data for sending to broker.                   |
 | timeout                       | **0.5**                                                           | Timeout for request.                                                                  |
 | tries                         | **3**                                                             | Count of tries to send data                                                           |
 | httpHeaders                   | **{ "CONTENT-TYPE": "application/json" }**                        | Object contains additional HTTP headers for request.                                  |
