@@ -132,7 +132,7 @@ Then, connector will create endpoints from a list of endpoints using endpoints f
 This configuration section contains array of objects with endpoints that the gateway will create.  
 Also this section contains settings about processing incoming messages (converter).  
 After request receiving, the message from the request is analyzed to extract device name, type and data (attributes and/or timeseries values).  
-By default, the gateway uses Json converter, but it is possible to provide custom converter. See [example](https://github.com/thingsboard/thingsboard-gateway/blob/master/thingsboard_gateway/extensions/request/custom_request_uplink_converter.py) in the source code.  
+By default, the gateway uses Json converter, but it is possible to provide custom converter.
 
 **Note**: You can specify multiple mapping objects inside the array.
 
@@ -150,7 +150,7 @@ This section provides configuration for client authorization at the gateway for 
 Basic<small>Recommended</small>%,%username%,%templates/iot-gateway/rest-connector-basic-security-config.md%br%
 Anonymous<small>No security</small>%,%anonymous%,%templates/iot-gateway/rest-connector-anonymous-security-config.md{% endcapture %}
 
-{% include content-toggle.html content-toggle-id="requestConnectorCredentialsConfig" toggle-spec=restconnectorsecuritytogglespec %}
+{% include content-toggle.html content-toggle-id="restConnectorCredentialsConfig" toggle-spec=restconnectorsecuritytogglespec %}
 
 
 #### Converter subsection
@@ -159,13 +159,13 @@ This subsection contains configuration for processing incoming messages.
 
 Types of request converters:  
 1. json -- Default converter  
-2. custom -- Custom converter (You can write it by yourself, and it will use to convert incoming data from the broker.)  
+2. custom -- Custom converter (You can write it by yourself, and it will use to convert incoming data.)  
 
 {% capture restconvertertypespec %}
 json<small>Recommended if json will be received in the request</small>%,%json%,%templates/iot-gateway/rest-converter-json-config.md%br%
 custom<small>Recommended if bytes or anything else will be received in the request</small>%,%custom%,%templates/iot-gateway/rest-converter-custom-config.md{% endcapture %}
 
-{% include content-toggle.html content-toggle-id="RequestConverterTypeConfig" toggle-spec=restconvertertypespec %}
+{% include content-toggle.html content-toggle-id="restConverterTypeConfig" toggle-spec=restconvertertypespec %}
 
 
 ### Attribute update section
@@ -179,13 +179,18 @@ The "**attributeRequests**" configuration allows configuring the format of the c
 
 | **Parameter**                 | **Default value**                                     | **Description**                                                                                    |
 |:-|:-|-
-| httpMethod                    | **GET**                                               | HTTP method for request (**GET**, **POST** etc.).                                                  |
+| httpMethod                    | **POST**                                              | HTTP method for request (**GET**, **POST** etc.).                                                  |
+| SSLVerify                     | **false**                                             | Verify or no SSL certificate on the server if available.                                           |
 | httpHeaders                   | **{ "CONTENT-TYPE": "application/json" }**            | Object contains additional HTTP headers for request.                                               |
+| security                      |                                                       | Security for request:                                                                              |
+|   type                        | **basic**                                             | Security type for request to the server (**basic** or **anonymous**).                              |
+|   username                    | **user**                                              | Username for basic type of the security.                                                           |
+|   password                    | **passwd**                                            | Password for basic type of the security.                                                           |   
 | timeout                       | **0.5**                                               | Timeout for request.                                                                               |
 | tries                         | **3**                                                 | Count of tries to send data                                                                        |
 | allowRedirects                | **true**                                              | Allow request redirection.                                                                         |
-| deviceNameFilter              | **SD.\***                                             | Regular expression device name filter, uses to determine, which function to execute.               |
-| attributeFilter               | **send_data**                                         | Regular expression attribute name filter, uses to determine, which function to execute.            |
+| deviceNameFilter              | **.\*REST$**                                          | Regular expression device name filter, uses to determine, which function to execute.               |
+| attributeFilter               | **data**                                              | Regular expression attribute name filter, uses to determine, which function to execute.            |
 | requestUrlExpression          | **sensor/${deviceName}/${attributeKey}**              | JSON-path expression uses for creating url address to send a message.                              |
 | valueExpression               | **{\\"${attributeKey}\\":\\"${attributeValue}\\"}**   | JSON-path expression uses for creating the message data that will send to url.                     |
 |---
@@ -193,22 +198,27 @@ The "**attributeRequests**" configuration allows configuring the format of the c
 The **attributeUpdates** section will look like:
 
 ```json
-
   "attributeUpdates": [
       {
-        "httpMethod": "POST",
+        "HTTPMethod": "POST",
+        "SSLVerify": false,
         "httpHeaders": {
           "CONTENT-TYPE": "application/json"
+        },
+        "security": {
+          "type": "basic",
+          "username": "user",
+          "password": "passwd"
         },
         "timeout": 0.5,
         "tries": 3,
         "allowRedirects": true,
-        "deviceNameFilter": "SD.*",
-        "attributeFilter": "send_data",
+        "deviceNameFilter": ".*REST$",
+        "attributeFilter": "data",
         "requestUrlExpression": "sensor/${deviceName}/${attributeKey}",
         "valueExpression": "{\"${attributeKey}\":\"${attributeValue}\"}"
       }
-  ]
+  ],
 
 ```
 
@@ -221,15 +231,17 @@ Configuration, provided in this section uses for sending RPC requests from Thing
 
 | **Parameter**                 | **Default value**                                                 | **Description**                                                                       |
 |:-|:-|-
-| deviceNameFilter              | **SmartMeter.\***                                                 | Regular expression device name filter, uses to determine, which function to execute.  |
+| deviceNameFilter              | **.\***                                                           | Regular expression device name filter, uses to determine, which function to execute.  |
 | methodFilter                  | **echo**                                                          | Regular expression method name filter, uses to determine, which function to execute.  |
-| requestUrlExpression          | **sensor/${deviceName}/request/${methodName}/${requestId}**       | JSON-path expression, uses to create url address to send RPC request.                 |
-| responseTimeout               | **0.5**                                                           | Timeout for request.                                                                  |
+| requestUrlExpression          | **http://127.0.0.1:5001/${deviceName}**                           | JSON-path expression, uses to create url address to send RPC request.                 |
+| responseTimeout               | **1**                                                             | Timeout for request.                                                                  |
 | httpMethod                    | **GET**                                                           | HTTP method for request (**GET**, **POST** etc.).                                     |
-| valueExpression               | **${params}**                                                     | JSON-path expression, uses for creating data for sending to broker.                   |
+| valueExpression               | **${params}**                                                     | JSON-path expression, uses for creating data for sending.                             |
 | timeout                       | **0.5**                                                           | Timeout for request.                                                                  |
 | tries                         | **3**                                                             | Count of tries to send data                                                           |
 | httpHeaders                   | **{ "CONTENT-TYPE": "application/json" }**                        | Object contains additional HTTP headers for request.                                  |
+| security                      |                                                                   | Security for request:                                                                 |
+|   type                        | **anonymous**                                                     | Security type for request to the server (**basic** or **anonymous**).                 |
 |---
 
 {% capture rpc_variants %}
@@ -247,21 +259,24 @@ Examples for both methods provided below.
     {
       "deviceNameFilter": ".*",
       "methodFilter": "echo",
-      "requestUrlExpression": "sensor/${deviceName}/request/${methodName}/${requestId}",
+      "requestUrlExpression": "http://127.0.0.1:5001/${deviceName}",
       "responseTimeout": 1,
-      "httpMethod": "GET",
+      "HTTPMethod": "GET",
       "valueExpression": "${params}",
       "timeout": 0.5,
       "tries": 3,
       "httpHeaders": {
         "Content-Type": "application/json"
+      },
+      "security": {
+        "type": "anonymous"
       }
     },
     {
       "deviceNameFilter": ".*",
       "methodFilter": "no-reply",
       "requestUrlExpression": "sensor/${deviceName}/request/${methodName}/${requestId}",
-      "httpMethod": "POST",
+      "HTTPMethod": "POST",
       "valueExpression": "${params}",
       "httpHeaders": {
         "Content-Type": "application/json"

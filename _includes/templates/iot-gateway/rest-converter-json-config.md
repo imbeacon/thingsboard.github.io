@@ -3,8 +3,8 @@ Json converter is default converter, it looks for deviceName, deviceType, attrib
 |**Parameter**|**Default value**|**Description**|
 |:-|:-|-
 | type                        | **json**                  | Provides information to connector that default converter will be uses for converting data from the incoming request.                                                     | 
-| deviceNameJsonExpression    | **Device ${name}**        | Simple JSON expression, uses for looking device name in the incoming message (value of the parameter "name" from the request will be used as device name).               |
-| deviceTypeJsonExpression    | **default**               | Simple JSON expression, uses for looking device type in the incoming message (string "default" will be used as device type).                                             |
+| deviceNameExpression        | **Device ${name}**        | Simple JSON expression, uses for looking device name in the incoming message (value of the parameter "name" from the request will be used as device name).               |
+| deviceTypeExpression        | **default**               | Simple JSON expression, uses for looking device type in the incoming message (string "default" will be used as device type).                                             |
 | attributes                  |                           | This subsection contains parameters of the incoming requests, that will be interpreted as attributes for the device.                                                     |
 | ... type                    | **string**                | Type of incoming data for a current attribute.                                                                                                                           |
 | ... key                     | **model**                 | Simple JSON expression, uses for looking key in the incoming data, that will send to ThingsBoard instance as attribute key.                                              |
@@ -22,7 +22,7 @@ Json converter is default converter, it looks for deviceName, deviceType, attrib
 {% include templates/info-banner.md content=difference %}
 
 
-Mapping subsection will look like:
+Mapping subsection looks like:
 
 ```json
     {
