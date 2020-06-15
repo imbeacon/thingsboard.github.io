@@ -22,7 +22,7 @@ Linux: /usr/share/thingsboard/conf
 
 But if ThingsBoard is installed as a **microservice**, then each component of the platform will have separate configuration files.
 
-In this guide all application properties will be devided by components where they are applied. **Note** that in case of **monolithic application**
+In this guide all application properties will be divided by components where they are applied. **Note** that in case of **monolithic application**
 all application properties are located in the single file - **thingsboard.yml** and all environment variables are in **thingsboard.conf**
 
 
@@ -4650,11 +4650,6 @@ We will list only main configuration parameters below to avoid duplication of th
 #### thingsboard.conf
 
 The configuration file for the startup script. Contains Java options and classpath related parameters.
-
-#### actor-system.conf
-
-Actor system configuration. Contains general actor system properties and configuration of [Akka dispatchers](http://doc.akka.io/docs/akka/current/java/dispatchers.html).
-Allows performance tuning for specific use cases.
 
 #### logback.xml
 
